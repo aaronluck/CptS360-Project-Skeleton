@@ -14,9 +14,9 @@ Hello everyone! Here is something to help you out as you start the project. This
 ## Some final pleas:
 ### PUSH YOUR CODE OFTEN
 VMs crash, files get corrupted, entire computers can die. And sometimes, you can't for the life of you figure out what changed to break your code. Commit often, push often, and you'll have a paper trail of all your progress.
-'Often' does not mean weekly, it doesn't even mean daily. Push everytime you make some progress that you'd really rather not lose.
+'Often' does not mean weekly, it doesn't even mean daily. Commit and push everytime you make some progress that you'd really rather not lose.
 ### If you fall behind, ask for help
-This project is iterative. Later functions may require earlier functions, and some functions like ls are the only way to prove that other functions are working at all. It's better to make sure that what you have works well then to attempt to move forward if your foundation is shaky.
+This project is iterative. Later functions may require earlier functions, and some functions like ls are the only way to prove that other functions are working at all. It's better to make sure that what you have works well than to attempt to move forward if your foundation is shaky.
 ### Use your resources
 The book, TAs, tutors, fellow classmates, KCW, there're a lot of ways out there to get help.
 If you want help from TAs specifically, either email all of us or email one of us and CC all of the rest of us. It's important for us all to be up to date on what's going on. Plus, your chances of getting a quick response are higher.
