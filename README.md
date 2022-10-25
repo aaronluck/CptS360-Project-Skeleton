@@ -20,3 +20,5 @@ This project is iterative. Later functions may require earlier functions, and so
 ### Use your resources
 The book, TAs, tutors, fellow classmates, KCW, there're a lot of ways out there to get help.
 If you want help from TAs specifically, either email all of us or email one of us and CC all of the rest of us. It's important for us all to be up to date on what's going on. Plus, your chances of getting a quick response are higher.
+
+#### Also just a reminder: This is a repo for your reference, there'll be a different one for the actual github classroom assignment.
