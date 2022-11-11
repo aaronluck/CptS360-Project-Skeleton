@@ -201,7 +201,8 @@ int main(int argc, char *argv[ ])
   // printf("Good luck and take care!\n\n\n\n");
 
   while(1){
-    printf("input command : [ls|cd|pwd|mkdir|rmdir|creat|link|unlink|symlink|readlink|quit] ");
+    printf("\n[ls|cd|pwd|mkdir|rmdir|creat|link|unlink|symlink|readlink|quit] \n");
+    printf("input command : ");
     fgets(line, 128, stdin);
     line[strlen(line)-1] = 0;
 
