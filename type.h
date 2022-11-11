@@ -1,4 +1,6 @@
-/*************** type.h file ************************/
+/*************** type.h file for LEVEL-1 ****************/
+
+// book 336
 
 #ifndef __TYPE_H__
 #define __TYPE_H__
@@ -52,47 +54,47 @@ DIR   *dp;
 #define NOFT       40
 
 typedef struct minode{
-  INODE INODE; // disk inode
-  int dev, ino;
-  int refCount; // use count
-  int dirty; // modified flag (minode has been modified)
-  int mounted; // mounted flag
-  struct mtable *mptr; // mount table pointer
-  // int lock; // ignored for simple file system
+  INODE INODE;           // INODE structure on disk
+  int dev, ino;          // (dev, ino) of INODE
+  int refCount;          // in use count
+  int dirty;             // 0 for clean, 1 for modified
+  int mounted;           // for level-3
+  struct mtable *mptr;  // for level-3
 }MINODE;
 
-// A structure for opening files
+// Open File Table
 typedef struct oft{
-  int  mode; // Mode of the file being opened
-  int  refCount; // Number of procs using this instance of a file being opened
-  MINODE *minodeptr; // Pointer to the minode of the file
-  int  offset; // Byte offset for R|W (Read|Write)
-}OFT;
+int mode;
+int refCount;
+struct minode *minodePtr;
+int offset;
+}OFT; 
 
-// Process structure
 typedef struct proc{
   struct proc *next;
-  int          pid;
-  int          uid, gid;
+  int          pid;      // process ID  
+  int          uid;      // user ID
+  int          gid;
   int          ppid;
   int          status;
-  struct minode *cwd;
-  OFT         *fd[NFD];
+  MINODE       *cwd;     // CWD directory pointer
+  OFT          *fd[NFD];  
 }PROC;
 
-// Mount table structure
+
+// book 337
 typedef struct mtable{
-  int dev; // Device number, it will be 0 for FREE
-  int ninodes; // From superblock
+  int dev;              // device number; 0 for FREE
+  int ninodes;          // from superblock
   int nblocks;
-  int free_blocks; // From superblock and group descriptor GD
+  int free_blocks;      // from superblock and GD
   int free_inodes;
-  int bmap; // From group descriptor GD
+  int bmap;             // from group descriptor
   int imap;
-  int iblock; // The start block of the inodes
-  MINODE *mntDirPtr; // Mount point DIR pointer
-  char devName[64]; // Name of device
-  char mntName[64]; // Mount point DIR name
+  int iblock;           // inodes start block
+  MINODE *mntDirPtr;    // mount point DIR pointer
+  char devName[64];     //device name
+  char mntName[64];     // mount point DIR name
 }MTABLE;
 
 MINODE minode[NMINODE]; // In memory inodes

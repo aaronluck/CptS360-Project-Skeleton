@@ -23,6 +23,9 @@ int   n;         // number of component strings
 char pathname[128];
 
 int fd;
+int dev;
+
+int nblocks, ninodes, bmap, imap, iblk;
 
 MINODE *iget();
 
@@ -59,58 +62,60 @@ int fs_init()
 
 int mount_root(char *rootdev)
 {
-  int i;
-  MTABLE *mp;
-  SUPER *sp;
-  GD *gp;
-  char buf[BLKSIZE];
+  // int i;
+  // MTABLE *mp;
+  // SUPER *sp;
+  // GD *gp;
+  // char buf[BLKSIZE];
 
-  globalDev = open(rootdev, O_RDWR);
+  // globalDev = open(rootdev, O_RDWR);
 
-  if (globalDev < 0){
-    printf("panic : can’t open root device\n");
-    exit(1);
-  }
+  // if (globalDev < 0){
+  //   printf("panic : can’t open root device\n");
+  //   exit(1);
+  // }
 
-  /* get super block of rootdev */
-  get_block(globalDev, 1, buf);
-  sp = (SUPER *)buf;
+  // /* get super block of rootdev */
+  // get_block(globalDev, 1, buf);
+  // sp = (SUPER *)buf;
 
-  /* check magic number */
-  if (sp->s_magic != SUPER_MAGIC){
-    printf("super magic=%x : %s is not an EXT2 filesys\n",
-    sp->s_magic, rootdev);
-    exit(0);
-  }
+  // /* check magic number */
+  // if (sp->s_magic != SUPER_MAGIC){
+  //   printf("super magic=%x : %s is not an EXT2 filesys\n",
+  //   sp->s_magic, rootdev);
+  //   exit(0);
+  // }
 
-  // fill mount table mtable[0] with rootdev information
-  mp = &mtable[0]; // use mtable[0]
-  mp->dev = globalDev;
+  // // fill mount table mtable[0] with rootdev information
+  // mp = &mtable[0]; // use mtable[0]
+  // mp->dev = globalDev;
 
-  // copy super block info into mtable[0]
-  ninodes = mp->ninodes = sp->s_inodes_count;
-  nblocks = mp->nblocks = sp->s_blocks_count;
-  strcpy(mp->devName, rootdev);
-  strcpy(mp->mntName, "/");
-  get_block(globalDev, 2, buf);
-  gp = (GD *)buf;
-  bmap = mp->bmap = gp->bg_block_bitmap;
-  imap = mp->imap = gp->bg_inode_bitmap;
-  iblock = mp->iblock = gp->bg_inode_table;
-  printf("bmap=%d imap=%d iblock=%d\n", bmap, imap, iblock);
+  // // copy super block info into mtable[0]
+  // ninodes = mp->ninodes = sp->s_inodes_count;
+  // nblocks = mp->nblocks = sp->s_blocks_count;
+  // strcpy(mp->devName, rootdev);
+  // strcpy(mp->mntName, "/");
+  // get_block(globalDev, 2, buf);
+  // gp = (GD *)buf;
+  // bmap = mp->bmap = gp->bg_block_bitmap;
+  // imap = mp->imap = gp->bg_inode_bitmap;
+  // iblock = mp->iblock = gp->bg_inode_table;
+  // printf("bmap=%d imap=%d iblock=%d\n", bmap, imap, iblock);
 
-  // call iget(), which inc minode’s refCount
+  // // call iget(), which inc minode’s refCount
   
-  root = iget(globalDev, 2); // get root inode
-  mp->mntDirPtr = root; // double link
-  root->mptr = mp;
+  // root = iget(globalDev, 2); // get root inode
+  // mp->mntDirPtr = root; // double link
+  // root->mptr = mp;
 
-  // set proc CWDs
-  for (i=0; i<NPROC; i++) // set proc’s CWD
-    proc[i].cwd = iget(globalDev, 2); // each inc refCount by 1
+  // // set proc CWDs
+  // for (i=0; i<NPROC; i++) // set proc’s CWD
+  //   proc[i].cwd = iget(globalDev, 2); // each inc refCount by 1
 
-  printf("mount : %s mounted on / \n", rootdev);
-  return 0;
+  // printf("mount : %s mounted on / \n", rootdev);
+  // return 0;
+
+  root = iget(dev, 2);
 }
 
 int quit()
@@ -142,6 +147,22 @@ int main(int argc, char *argv[ ])
 
   char *disk = rootdev;
 
+  char *old_file = strtok (pathname, "");
+  char *new_file = strtok(NULL, "");
+
+  printf("checking EXT2 FS ... ");
+  if((fd = open(disk, O_RDWR)) < 0)
+  {
+    printf("open %s failed \n", disk);
+    exit(1);
+  }
+
+  dev = fd;                               // global dev same as this fd
+
+  /********** read super block  ****************/
+  get_block(dev, 1, buf);
+  sp = (SUPER *)buf;
+
   if (argc > 1)
   {
     disk = argv[1];
@@ -149,25 +170,48 @@ int main(int argc, char *argv[ ])
     rootdev = disk;
   }
 
-  printf("\n\n\nIf you've gotten here, congratulations! The program has compiled.\n\n");
-  printf("There are several utility functions that are not yet complete-\nwhich means beyond this point, you won't be able to properly load up the filesystem.\n\n");
-  printf("Take a look around at the comments to figure out what's missing-\nwhere you can find it, and what you're going to have to do yourself.\n\n");
-  printf("Good luck and take care!\n\n\n\n");
+  /*********** verify it's an ext2 file system ***********/
+  if (sp->s_magic != 0xEF53){
+      printf("magic = %x is not an ext2 filesystem\n", sp->s_magic);
+      exit(1);
+  }     
+  printf("EXT2 FS OK\n");
+  ninodes = sp->s_inodes_count;
+  nblocks = sp->s_blocks_count;
 
-  fs_init();
+  get_block(dev, 2, buf); 
+  gp = (GD *)buf;
+
+  bmap = gp->bg_block_bitmap;
+  imap = gp->bg_inode_bitmap;
+  iblk = gp->bg_inode_table;
+  printf("bmp=%d imap=%d inode_start = %d\n", bmap, imap, iblk);
 
   mount_root(rootdev);
+  printf("root refCount = %d\n", root->refCount);
+
+  printf("creating P0 as running process\n");
+  running = &proc[0];
+  running->cwd = iget(dev, 2);
+  printf("root refCount = %d\n", root->refCount);
+
+  // printf("\n\n\nIf you've gotten here, congratulations! The program has compiled.\n\n");
+  // printf("There are several utility functions that are not yet complete-\nwhich means beyond this point, you won't be able to properly load up the filesystem.\n\n");
+  // printf("Take a look around at the comments to figure out what's missing-\nwhere you can find it, and what you're going to have to do yourself.\n\n");
+  // printf("Good luck and take care!\n\n\n\n");
 
   while(1){
-    printf("P%d running: ", running->pid);
-    printf("input command : ");
+    printf("input command : [ls|cd|pwd|mkdir|rmdir|creat|link|unlink|symlink|readlink|quit] ");
     fgets(line, 128, stdin);
     line[strlen(line)-1] = 0;
 
+
     if (line[0]==0)
-      continue;
+       continue;
+    pathname[0] = 0;
 
     sscanf(line, "%s %s", cmd, pathname);
+    printf("cmd=%s pathname=%s\n", cmd, pathname);
     
     if (!strcmp(cmd, "ls"))
       my_ls(pathname);
@@ -175,6 +219,20 @@ int main(int argc, char *argv[ ])
       chdir(pathname);
     if (!strcmp(cmd, "pwd"))
       pwd(running->cwd);
+    if (strcmp(cmd, "mkdir"))
+      return 0;
+    if (strcmp(cmd, "rmdir"))
+      return 0;
+    if (strcmp(cmd, "creat"))
+      return 0;
+    if (strcmp(cmd, "link"))
+      my_link(old_file,new_file);
+    if (strcmp(cmd, "unlink"))
+      my_unlink(pathname);
+    if (strcmp(cmd, "symlink"))
+       return 0;
+    if (strcmp(cmd, "readlink"))
+      return 0;
     if (!strcmp(cmd, "quit"))
       quit();
   }
